@@ -26,6 +26,7 @@ public class Controller2D : MonoBehaviour {
 	public void Move(Vector3 v){
 		UpdateRaycastOrigins();
 		collisions.Reset();
+		collisions.velocityOld = v;
 		if(v.y < 0) DescendSlope(ref v);
 		if(v.x != 0) HorizontalCollisions(ref v);
 		if(v.y != 0) VerticalCollisions(ref v);
@@ -45,6 +46,10 @@ public class Controller2D : MonoBehaviour {
 				float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
 
 				if(i == 0 && slopeAngle <= maxClimbAngle){
+					if(collisions.descendingSlope){
+						collisions.descendingSlope = false;
+						v = collisions.velocityOld;
+					}
 					float distanceToSlopeStart = 0;
 					if(slopeAngle != collisions.slopeAngleOld){
 						distanceToSlopeStart = hit.distance - skinWidth;
@@ -114,7 +119,24 @@ public class Controller2D : MonoBehaviour {
 	}
 
 	void DescendSlope(ref Vector3 v){
-
+		float directionX = Mathf.Sign(v.x);
+		Vector2 rayOrigin = directionX == -1 ? raycastOrigins.bottomRight : raycastOrigins.bottomLeft;
+		RaycastHit2D hit = Physics2D.Raycast(rayOrigin, Vector2.down, Mathf.Infinity, collisionMask);
+		if(hit){
+			float slopeAngle = Vector2.Angle(hit.normal, Vector2.up);
+			if(slopeAngle != 0 && slopeAngle <= maxDescendAngle){
+				if(Mathf.Sign(hit.normal.x) == directionX){
+					if(hit.distance - skinWidth <= Mathf.Tan(slopeAngle * Mathf.Deg2Rad) * Mathf.Abs(v.x)){
+						float moveDistance = Mathf.Abs(v.x);
+						float descendVelocityY = Mathf.Sin(slopeAngle * Mathf.Deg2Rad) * moveDistance;
+						v.x = Mathf.Cos(slopeAngle * Mathf.Deg2Rad) * moveDistance * Mathf.Sign(v.x);
+						v.y -= descendVelocityY;
+						collisions.slopeAngle = slopeAngle;
+						collisions.descendingSlope = collisions.below = true;
+					}
+				}
+			}
+		}
 	}
 
 	void CalculateRaySpacing(){
@@ -143,12 +165,13 @@ public class Controller2D : MonoBehaviour {
 	public struct CollisionInfo{
 		public bool above, below;
 		public bool left, right;
-		public bool climbingSlope;
+		public bool climbingSlope, descendingSlope;
 		public float slopeAngle, slopeAngleOld;
+		public Vector3 velocityOld;
 
 		public void Reset(){
 			above = below = left = right = false;
-			climbingSlope = false;
+			climbingSlope = descendingSlope = false;
 			slopeAngleOld = slopeAngle;
 			slopeAngle = 0;
 		}
