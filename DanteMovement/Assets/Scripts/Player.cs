@@ -40,5 +40,9 @@ public class Player : MonoBehaviour {
 		velocity.y += gravity * Time.deltaTime;
 
 		controller.Move(velocity * Time.deltaTime);
+
+		if(Input.GetKeyDown(KeyCode.R)){
+			transform.position = new Vector3();
+		}
 	}
 }
