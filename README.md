@@ -1,3 +1,1 @@
-# Dante Movement
-
-:pizza:
+# GitHub Pages README file
