@@ -2,7 +2,7 @@
 using System.Collections;
 
 [RequireComponent(typeof(Controller2D))]
-public class Player : MonoBehaviour {
+public class Player: MonoBehaviour{
 
 	//Primitive Types
 	public float jumpHeight = 4, timeToJumpApex = .4f; //timeToJumpApex basically is the time it takes to reach the highest point.
